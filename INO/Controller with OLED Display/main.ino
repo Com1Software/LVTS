@@ -17,7 +17,7 @@ void setup() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0,0);
-  display.print("Throtle    Steering");
+  display.print("Steering    Throtle");
   display.setCursor(20,10);
   display.print("0");
   display.setCursor(80,10);
@@ -48,7 +48,7 @@ void loop() {
    myservo3.write(map(pulseIn(4,HIGH),1100,1900,0,255));
    display.clearDisplay();
    display.setCursor(0,0);
-  display.print("Throtle    Steering");
+  display.print("Steering    Throtle");
   display.setCursor(20,10);
   display.print("     ");
   display.setCursor(20,10);
