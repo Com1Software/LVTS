@@ -12,7 +12,7 @@ Servo myservo3;
 
 void setup() {
   Serial.begin(115200);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); 
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C); 
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
@@ -46,6 +46,17 @@ void loop() {
    myservo1.write(map(pulseIn(2,HIGH),1100,1900,0,255)); 
    myservo2.write(map(pulseIn(3,HIGH),1100,1900,0,255)-125); 
    myservo3.write(map(pulseIn(4,HIGH),1100,1900,0,255));
+   display.clearDisplay();
+   display.setCursor(0,0);
+  display.print("Throtle    Steering");
+  display.setCursor(20,10);
+  display.print("     ");
+  display.setCursor(20,10);
+  display.print(map(pulseIn(2,HIGH),1100,1900,0,255));
+  display.setCursor(80,10);
+  display.print("     ");
+  display.setCursor(80,10);
+  display.print(map(pulseIn(3,HIGH),1100,1900,0,255));
   display.display();
    delay(10);
 }
