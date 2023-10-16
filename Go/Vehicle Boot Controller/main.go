@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -13,6 +15,7 @@ func main() {
 	agent := SSE()
 	fmt.Println("Vehicle Boot Controller")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
+	fmt.Printf("Outbound IP  : %s\n", GetOutboundIP())
 
 	go func() {
 		for {
@@ -107,4 +110,16 @@ func (agent *Agent) listen() {
 		}
 	}
 
+}
+
+func GetOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }
