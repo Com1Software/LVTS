@@ -11,7 +11,7 @@ import (
 //-------------------------------------------------------------------------
 func main() {
 	agent := SSE()
-	fmt.Println("Test Server Sent Events ")
+	fmt.Println("Vehicle Boot Controller")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
 
 	go func() {
