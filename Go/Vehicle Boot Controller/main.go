@@ -13,20 +13,23 @@ import (
 //-------------------------------------------------------------------------
 func main() {
 	agent := SSE()
+	xip:=fmt.Sprintf("%s",GetOutboundIP())
+	port:="8080"
 	fmt.Println("Vehicle Boot Controller")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
-	fmt.Printf("Outbound IP  : %s\n", GetOutboundIP())
+	fmt.Printf("Outbound IP  : %s Port : %s\n", xip,port)
 
 	go func() {
 		for {
-			time.Sleep(time.Second * 2)
-			event := fmt.Sprintf(" %v\n", time.Now())
+			time.Sleep(time.Second * 1)
+			dtime:=fmt.Sprintf("%s",time.Now())
+			event := fmt.Sprintf("Controller:%s %v\n",GetOutboundIP(),dtime[0:24])
 			agent.Notifier <- []byte(event)
 		}
 	}()
 
-	Openbrowser("http://localhost:8080")
-	http.ListenAndServe("localhost:8080", agent)
+	Openbrowser(xip+":"+port)
+	http.ListenAndServe(xip+":"+port, agent)
 
 }
 
