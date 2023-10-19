@@ -9,9 +9,10 @@ import (
 )
 
 func main() {
-	fmt.Println("Test Multiport Serial Controller")
+	fmt.Println("Pi Test Vehicle")
 	gpsport := ""
 	rcport := ""
+	senport:=""
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -71,6 +72,11 @@ func main() {
 		fmt.Printf("RC Port %s\n", rcport)
 	} else {
 		fmt.Printf("RC Port Not Found\n")
+	}
+	if len(senport) > 0 {
+		fmt.Printf("Sensor Port %s\n", senport)
+	} else {
+		fmt.Printf("Sensor Port Not Found\n")
 	}
 
 }
