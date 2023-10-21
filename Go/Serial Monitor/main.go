@@ -13,6 +13,7 @@ func main() {
 	gpsport := ""
 	rcport := ""
 	senport:=""
+	gtg:=3
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -73,19 +74,30 @@ func main() {
 	}
 	if len(gpsport) > 0 {
 		fmt.Printf("GPS Port %s\n", gpsport)
+		gtg--
 	} else {
 		fmt.Printf("GPS Port Not Found\n")
 	}
 	if len(rcport) > 0 {
 		fmt.Printf("RC Port %s\n", rcport)
-	} else {
+        gtg--
+		} else {
 		fmt.Printf("RC Port Not Found\n")
 	}
 	if len(senport) > 0 {
 		fmt.Printf("Sensor Port %s\n", senport)
-	} else {
+        gtg--
+		} else {
 		fmt.Printf("Sensor Port Not Found\n")
 	}
+    if gtg==0{
+		fmt.Printf("Good to go\n")
+		fmt.Printf("All ports found\n")
+	
+		}else{
+			fmt.Printf("Init Failure  %d ports not found\n", gtg)
+    
+		}
 
 
 }
