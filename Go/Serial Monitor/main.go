@@ -12,6 +12,7 @@ func main() {
 	fmt.Println("Test Multiport Serial Controller")
 	gpsport := ""
 	rcport := ""
+	senport:=""
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -35,6 +36,7 @@ func main() {
 		}
 		line := ""
 		buff := make([]byte, 1)
+		pass:=0
 		for {
 			n, err := port.Read(buff)
 			if err != nil {
@@ -46,19 +48,26 @@ func main() {
 			}
 			line = line + string(buff[:n])
 			if strings.Contains(string(buff[:n]), "\n") {
+		     if pass>3{
 				port.Close()
 				break
+			 }else{
+		    	break 
 			}
-
+		    }
 		}
 		if len(line) > 3 {
 			switch {
-			case line[0:3] == "$GP":
-				gpsport = ports[x]
 			case line[0:3] == "CH1":
 				rcport = ports[x]
+			
+			case line[0:3] == "$GP":
+				gpsport = ports[x]
+			
+	    	case line[0:3] == "DIS":
+		    	senport = ports[x]
+	
 			}
-
 		}
 
 	}
@@ -72,5 +81,11 @@ func main() {
 	} else {
 		fmt.Printf("RC Port Not Found\n")
 	}
+	if len(senport) > 0 {
+		fmt.Printf("Sensor Port %s\n", senport)
+	} else {
+		fmt.Printf("Sensor Port Not Found\n")
+	}
+
 
 }
