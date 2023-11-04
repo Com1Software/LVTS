@@ -46,48 +46,50 @@ func main() {
 	}
 
 	for x := 0; x < len(ports); x++ {
-		port, err := serial.Open(ports[x], mode)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := l.Print(3, 2, "                  "); err != nil {
-			fmt.Println(err)
-			return
-		}
-		dp := fmt.Sprintf("Detecting Port %d", x+1)
-		if err := l.Print(3, 2, dp); err != nil {
-			fmt.Println(err)
-			return
-		}
-		line := ""
-		buff := make([]byte, 1)
-		for {
-			n, err := port.Read(buff)
+		if ports[x][8:11] == "ACM" {
+			port, err := serial.Open(ports[x], mode)
 			if err != nil {
 				log.Fatal(err)
 			}
-			if n == 0 {
-				port.Close()
-				break
+			if err := l.Print(3, 2, "                  "); err != nil {
+				fmt.Println(err)
+				return
 			}
-			line = line + string(buff[:n])
-			if strings.Contains(string(buff[:n]), "\n") {
-				port.Close()
-				break
+			dp := fmt.Sprintf("Detecting Port %d", x+1)
+			if err := l.Print(3, 2, dp); err != nil {
+				fmt.Println(err)
+				return
 			}
-
-		}
-		if len(line) > 3 {
-			switch {
-			case line[0:3] == "$GP":
-				gpsport = ports[x]
-			case line[0:3] == "CH1":
-				rcport = ports[x]
-			case line[0:3] == "DIS":
-				senport = ports[x]
+			line := ""
+			buff := make([]byte, 1)
+			for {
+				n, err := port.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					port.Close()
+					break
+				}
+				line = line + string(buff[:n])
+				if strings.Contains(string(buff[:n]), "\n") {
+					port.Close()
+					break
+				}
 
 			}
+			if len(line) > 3 {
+				switch {
+				case line[0:3] == "$GP":
+					gpsport = ports[x]
+				case line[0:3] == "CH1":
+					rcport = ports[x]
+				case line[0:3] == "DIS":
+					senport = ports[x]
 
+				}
+
+			}
 		}
 
 	}
