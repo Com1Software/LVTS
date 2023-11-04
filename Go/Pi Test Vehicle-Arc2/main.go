@@ -46,6 +46,7 @@ func main() {
 	}
 
 	for x := 0; x < len(ports); x++ {
+		if ports[x][8:11]=="ACM"{
 		port, err := serial.Open(ports[x], mode)
 		if err != nil {
 			log.Fatal(err)
@@ -88,7 +89,7 @@ func main() {
 
 			}
 
-		}
+		}}
 
 	}
 	if err := l.Print(2, 2, "                  "); err != nil {
