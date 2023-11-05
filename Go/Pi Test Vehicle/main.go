@@ -98,6 +98,14 @@ func main() {
 						}
 						if i > 150 {
 							fmt.Println("Right")
+							if i > 200 {
+								fmt.Println("Far Right")
+								if i > 250 {
+									fmt.Println("Super Far Right")
+								}
+
+							}
+						}
 						}
 						if i < 100 {
 							fmt.Println("Left")
@@ -108,9 +116,19 @@ func main() {
 						}
 						if i > 150 {
 							fmt.Println("Forward")
+							if i > 200 {
+								fmt.Println("Fast Forward")
+								if i > 250 {
+									fmt.Println("Super Fast Forward")
+								}
+
+							}
 						}
 						if i < 100 {
 							fmt.Println("Backward")
+							if i < 50 {
+								fmt.Println("Fast")
+							}
 						}
 						fmt.Printf("CH1=%s CH2=%s CH3=%s CH4=%s\n", ch1, ch2, ch3, ch4)
 
