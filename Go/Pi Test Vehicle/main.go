@@ -96,53 +96,57 @@ func main() {
 						if e != nil {
 							fmt.Println(e)
 						}
-						if i > 140 {
-							fmt.Println("Right")
-							if i > 190 {
-								fmt.Println("Far Right")
-								if i > 220 {
-									fmt.Println("Super Far Right")
+						if i > -300 {
+							if i > 140 {
+								fmt.Println("Right")
+								if i > 190 {
+									fmt.Println("Far Right")
+									if i > 220 {
+										fmt.Println("Super Far Right")
+									}
+
 								}
 
 							}
+							if i < 100 {
+								fmt.Println("Left")
+								if i < 60 {
+									fmt.Println("Far Left")
+									if i < 10 {
+										fmt.Println("Super Far Left")
+									}
 
-						}
-						if i < 100 {
-							fmt.Println("Left")
-							if i < 60 {
-								fmt.Println("Far Left")
-								if i < 10 {
-									fmt.Println("Super Far Left")
+								}
+							}
+							i, e = strconv.Atoi(ch2)
+							if e != nil {
+								fmt.Println(e)
+							}
+							if i > 150 {
+								fmt.Println("Forward")
+								if i > 200 {
+									fmt.Println("Fast Forward")
+									if i > 250 {
+										fmt.Println("Super Fast Forward")
+									}
 								}
 
 							}
-						}
-						i, e = strconv.Atoi(ch2)
-						if e != nil {
-							fmt.Println(e)
-						}
-						if i > 150 {
-							fmt.Println("Forward")
-							if i > 200 {
-								fmt.Println("Fast Forward")
-								if i > 250 {
-									fmt.Println("Super Fast Forward")
+							if i < 100 {
+								fmt.Println("Backward")
+								if i < 50 {
+									fmt.Println("Fast Backward")
+									if i < 10 {
+										fmt.Println("Super Fast Backward")
+									}
+
 								}
 							}
 
+							fmt.Printf("CH1=%s CH2=%s CH3=%s CH4=%s\n", ch1, ch2, ch3, ch4)
+						} else {
+							fmt.Println("Conroller is off")
 						}
-						if i < 100 {
-							fmt.Println("Backward")
-							if i < 50 {
-								fmt.Println("Fast Backward")
-								if i < 10 {
-									fmt.Println("Super Fast Backward")
-								}
-
-							}
-						}
-						fmt.Printf("CH1=%s CH2=%s CH3=%s CH4=%s\n", ch1, ch2, ch3, ch4)
-
 					case line[1:4] == "DIS":
 						ok = false
 					case line[0:3] == "POS":
