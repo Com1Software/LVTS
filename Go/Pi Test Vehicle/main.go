@@ -17,15 +17,11 @@ func main() {
 	agent := SSE()
 	xip := fmt.Sprintf("%s", GetOutboundIP())
 	port := "8080"
-	//	s1 := rand.NewSource(time.Now().UnixNano())
-	//	r1 := rand.New(s1)
-	//
 	//--- tctl 0 = normal mode test
 	//         1 = high speed mode test
-	//
 	tctl := 1
 	tc := 0
-	fmt.Println("Test SSE Server")
+	fmt.Println("Pi Test Vehicle")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
 	fmt.Printf("Outbound IP  : %s Port : %s\n", xip, port)
 	if runtime.GOOS == "windows" {
@@ -63,6 +59,7 @@ func main() {
 					tc++
 				}
 				line := ""
+				ok := false
 				buff := make([]byte, 1)
 				for {
 					n, err := port.Read(buff)
@@ -74,16 +71,30 @@ func main() {
 						fmt.Println("closed Port")
 						break
 					}
-
 					if strings.Contains(string(buff[:n]), "\n") {
 						break
 					} else {
 						line = line + string(buff[:n])
 					}
 				}
+				if len(line) > 2 {
+					switch {
+					case line[0:3] == "$GP":
+						ok = true
+					case line[1:4] == "CH1":
+						ok = true
+					case line[1:4] == "DIS":
+						ok = true
+					case line[0:3] == "POS":
+						ok = true
 
-				agent.Notifier <- []byte(line)
-				fmt.Println(line)
+					}
+				}
+				if ok {
+					agent.Notifier <- []byte(line)
+					fmt.Println(line)
+				}
+				ok = false
 			}
 		}()
 	}
