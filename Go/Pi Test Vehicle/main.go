@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -85,9 +86,34 @@ func main() {
 						if len(id) > 0 {
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s\n", id, latitude, ns, longitude, ew, gpsspeed, degree)
 							fmt.Println(event)
+							agent.Notifier <- []byte(event)
 						}
-					case line[1:4] == "CH1":
+					case line[0:3] == "CH1":
 						ok = false
+						ch1, ch2, ch3, ch4 := getCHPosition(line)
+						fmt.Print("\033[u\033[K")
+						i, e := strconv.Atoi(ch1)
+						if e != nil {
+							fmt.Println(e)
+						}
+						if i > 150 {
+							fmt.Println("Right")
+						}
+						if i < 100 {
+							fmt.Println("Left")
+						}
+						i, e = strconv.Atoi(ch2)
+						if e != nil {
+							fmt.Println(e)
+						}
+						if i > 150 {
+							fmt.Println("Forward")
+						}
+						if i < 100 {
+							fmt.Println("Backward")
+						}
+						fmt.Printf("CH1=%s CH2=%s CH3=%s CH4=%s\n", ch1, ch2, ch3, ch4)
+
 					case line[1:4] == "DIS":
 						ok = false
 					case line[0:3] == "POS":
@@ -238,4 +264,33 @@ func getGPSPosition(sentence string) (string, string, string, string, string, st
 	}
 
 	return id, latitude, longitude, ns, ew, speed, degree
+}
+
+func getCHPosition(sentence string) (string, string, string, string) {
+	data := strings.Split(sentence, ",")
+	ch1 := ""
+	ch2 := ""
+	ch3 := ""
+	ch4 := ""
+	if len(data) == 4 {
+		ch1data := strings.Split(data[0], "=")
+		ch2data := strings.Split(data[1], "=")
+		ch3data := strings.Split(data[2], "=")
+		ch4data := strings.Split(data[3], "=")
+
+		if string(ch1data[0]) == "CH1" {
+			ch1 = ch1data[1]
+		}
+		if string(ch2data[0]) == "CH2" {
+			ch2 = ch2data[1]
+		}
+		if string(ch3data[0]) == "CH3" {
+			ch3 = ch3data[1]
+		}
+		if string(ch4data[0]) == "CH4" {
+			ch4 = ch4data[1]
+		}
+	}
+	return ch1, ch2, ch3, ch4
+
 }
