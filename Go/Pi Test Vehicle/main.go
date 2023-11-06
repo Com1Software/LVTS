@@ -147,10 +147,10 @@ func main() {
 						} else {
 							fmt.Println("Conroller is off")
 						}
-					case line[1:4] == "DIS":
+					case line[0:3] == "DIS":
 						ok = false
-					case line[0:3] == "POS":
-						ok = false
+						dis1, pos1, min1, max1, dis2, pos2, min2, max2 := getSenPosition(line)
+						fmt.Printf("DIS1=%s POS1=%s MIN1=%s MAX1=%s DIS2=%s POS2=%s MIN2=%s MAX2=%s\n", dis1, pos1, min1, max1, dis2, pos2, min2, max2)
 
 					}
 				}
@@ -326,4 +326,38 @@ func getCHPosition(sentence string) (string, string, string, string) {
 	}
 	return ch1, ch2, ch3, ch4
 
+}
+
+func getSenPosition(sentence string) (string, string, string, string, string, string, string, string) {
+	data := strings.Split(sentence, ",")
+	dis1 := ""
+	pos1 := ""
+	min1 := ""
+	max1 := ""
+	dis2 := ""
+	pos2 := ""
+	min2 := ""
+	max2 := ""
+
+	if string(data[0][0:4]) == "DIS1" {
+		data1 := strings.Split(data[0], "=")
+		dis1 = data1[1]
+		data1 = strings.Split(data[1], "=")
+		pos1 = data1[1]
+		data1 = strings.Split(data[2], "=")
+		min1 = data1[1]
+		data1 = strings.Split(data[3], "=")
+		max1 = data1[1]
+		data1 = strings.Split(data[4], "=")
+		dis2 = data1[1]
+		data1 = strings.Split(data[5], "=")
+		pos2 = data1[1]
+		data1 = strings.Split(data[6], "=")
+		min2 = data1[1]
+		data1 = strings.Split(data[7], "=")
+		max2 = data1[1]
+
+	}
+
+	return dis1, pos1, min1, max1, dis2, pos2, min2, max2
 }
