@@ -12,7 +12,7 @@ go build
 
 ## Auto Start Setup
 To make the vehicle run automaticly when the Rasberry Pi is first turned on,
-you can add the cammand to the .bashrc. To do this at the command line enter
+you can add the command to the .bashrc. To do this at the command line enter
 
 ```shell
 sudo vim .bashrc
