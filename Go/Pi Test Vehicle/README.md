@@ -20,7 +20,7 @@ sudo vim .bashrc
 
 At the very end of file add:
 ```shell
-sudo nmcli device wifi hotspot ssid PiLVTS password yourpassword
+sudo nmcli device wifi hotspot ssid Pi-LVTS password yourpassword
 './LVTS/Go/Pi Test Vevicle/test'
 ```
 Next run sudo raspi-config and in the system change the boot option to CLI user
