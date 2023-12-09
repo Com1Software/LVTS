@@ -27,5 +27,6 @@ Next run sudo raspi-config and in the system change the boot option to CLI user
 
 
 ## Useful Links
+[Test-Pi-Servo](https://github.com/Com1Software/Test-Pi-Servo)
 
 [Test-Magnetometer](https://github.com/Com1Software/Test-Magnetometer)
