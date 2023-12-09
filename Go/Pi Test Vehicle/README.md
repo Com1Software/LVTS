@@ -10,7 +10,7 @@ go mod tidy
 go build
 ```
 
-## Auto Start Setup
+## Auto Start Setup With WiFi Hotspot
 To make the vehicle run automaticly when the Rasberry Pi is first turned on,
 you can add the command to the .bashrc. To do this at the command line enter
 
