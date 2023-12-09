@@ -3,16 +3,16 @@
 ## Installation Build and Run
 
 ```shell
-git clone https://github.com/Com1Software/Test-GoWebServer.git gowebserver
-cd gowebserver
-go mod init testserver
+https://github.com/Com1Software/LVTS.git
+cd 'LVTS/Gp/Pi Test Vehicle"
+go mod init test
 go mod tidy
 go build
-testserver
+
 
 
 ```
 
 ## Useful Links
 
-[Go Package net/http Documentation](https://pkg.go.dev/net/http)
+[Test-Magnetometer](https://github.com/Com1Software/Test-Magnetometer)
