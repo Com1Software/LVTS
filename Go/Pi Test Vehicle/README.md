@@ -3,7 +3,7 @@
 ## Installation and Build
 
 ```shell
-https://github.com/Com1Software/LVTS.git
+git clone https://github.com/Com1Software/LVTS.git
 cd 'LVTS/Gp/Pi Test Vehicle"
 go mod init test
 go mod tidy
