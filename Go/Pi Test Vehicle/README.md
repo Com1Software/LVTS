@@ -1,6 +1,6 @@
 # Pi Test Vehicle
 
-## Installation Build and Run
+## Installation Build
 
 ```shell
 https://github.com/Com1Software/LVTS.git
@@ -10,7 +10,13 @@ go mod tidy
 go build
 
 ```
+
+## Auto Start Setup
+To make the vehicle run automaticly when the Rasberry Pi is first turned on,
+you can add the cammand to the .bashrc. To do this at the command line enter
+
 sudo vim .bashrc
+
 At the very end of file add:
 ```shell
 sudo nmcli device wifi hotspot ssid PiLVTS password yourpassword
