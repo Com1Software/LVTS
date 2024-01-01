@@ -9,9 +9,26 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math"
 
 	"go.bug.st/serial"
+	"github.com/d2r2/go-i2c"
 )
+
+
+
+const (
+    RegisterA    = 0
+    RegisterB    = 0x01
+    RegisterMode = 0x02
+    XAxisH       = 0x03
+    ZAxisH       = 0x05
+    YAxisH       = 0x07
+    Declination  = -0.00669
+    pi           = 3.14159265359
+)
+
+var bus *i2c.I2C
 
 // -------------------------------------------------------------------------
 func main() {
@@ -50,8 +67,14 @@ func main() {
 			log.Fatal(err)
 		}
 
+
+		bus, _ = i2c.NewI2C(0x1e, 1)
+        defer bus.Close()
+        MagnetometerInit()
+        fmt.Println("Reading Heading Angle")
 		go func() {
 			for {
+				              
 				switch {
 				case tctl == 0:
 					time.Sleep(time.Second * 1)
@@ -81,10 +104,22 @@ func main() {
 				if len(line) > 2 {
 					switch {
 					case line[0:3] == "$GP":
+						x := readRawData(XAxisH)
+							z := readRawData(ZAxisH)
+						y := readRawData(YAxisH)
+						heading := math.Atan2(float64(y), float64(x)) + Declination
+						if heading > 2*pi {
+						  heading -= 2 * pi
+						}
+						if heading < 0 {
+						   heading += 2 * pi
+						}
+						headingAngle := int(heading * 180 / pi)
 						ok = false
 						id, latitude, longitude, ns, ew, gpsspeed, degree := getGPSPosition(line)
 						if len(id) > 0 {
-							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s\n", id, latitude, ns, longitude, ew, gpsspeed, degree)
+							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
+							event =event+fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d \n", headingAngle,x,y,z)
 							fmt.Println(event)
 							agent.Notifier <- []byte(event)
 						}
@@ -360,4 +395,21 @@ func getSenPosition(sentence string) (string, string, string, string, string, st
 	}
 
 	return dis1, pos1, min1, max1, dis2, pos2, min2, max2
+}
+
+
+func MagnetometerInit() {
+    bus.WriteRegU8(RegisterA, 0x70)
+    bus.WriteRegU8(RegisterB, 0xa0)
+    bus.WriteRegU8(RegisterMode, 0)
+}
+
+func readRawData(addr byte) int {
+    high, _ := bus.ReadRegU8(addr)
+    low, _ := bus.ReadRegU8(addr + 1)
+    value := int(int16(high)<<8 | int16(low))
+    if value > 32768 {
+        value -= 65536
+    }
+    return value
 }
