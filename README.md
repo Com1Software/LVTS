@@ -1,6 +1,15 @@
 # LVTS
 Land Vehicle Test System
 
+
+sudo i2cdetect -y 1
+
+https://github.com/d2r2/go-i2c
+
+https://github.com/googolgl/go-i2c
+
+
+
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
 https://people.utm.my/shaharil/run-programs-on-your-raspberry-pi-at-startup/
