@@ -10,6 +10,8 @@ https://github.com/googolgl/go-i2c
 
 https://github.com/d2r2/go-hd44780
 
+https://www.instructables.com/Raspberry-PI-Multiple-I2c-Devices/
+
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
 https://people.utm.my/shaharil/run-programs-on-your-raspberry-pi-at-startup/
