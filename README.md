@@ -12,6 +12,8 @@ https://github.com/d2r2/go-hd44780
 
 https://www.instructables.com/Raspberry-PI-Multiple-I2c-Devices/
 
+https://forums.raspberrypi.com/viewtopic.php?t=127983
+
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
 https://people.utm.my/shaharil/run-programs-on-your-raspberry-pi-at-startup/
