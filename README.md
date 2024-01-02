@@ -8,7 +8,7 @@ https://github.com/d2r2/go-i2c
 
 https://github.com/googolgl/go-i2c
 
-
+https://github.com/d2r2/go-hd44780
 
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
