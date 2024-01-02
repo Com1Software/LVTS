@@ -12,7 +12,7 @@ import (
 	"math"
 
 	"go.bug.st/serial"
-	"github.com/d2r2/go-i2c"
+	"github.com/googolgl/go-i2c"
 )
 
 
@@ -28,7 +28,7 @@ const (
     pi           = 3.14159265359
 )
 
-var bus *i2c.I2C
+var bus *i2c.Options
 
 // -------------------------------------------------------------------------
 func main() {
@@ -68,7 +68,7 @@ func main() {
 		}
 
 
-		bus, _ = i2c.NewI2C(0x1e, 1)
+		bus, _ = i2c.New(0x1e, "/dev/i2c-1")
         defer bus.Close()
         MagnetometerInit()
         fmt.Println("Reading Heading Angle")
