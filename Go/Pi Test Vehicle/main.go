@@ -13,6 +13,7 @@ import (
 
 	"go.bug.st/serial"
 	"github.com/googolgl/go-i2c"
+	"github.com/googolgl/go-pca9685"
 )
 
 
@@ -45,6 +46,18 @@ func main() {
 	if runtime.GOOS == "windows" {
 		xip = "http://localhost"
 	}
+	
+	i2cs, err := i2c.New(pca9685.Address, "/dev/i2c-1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	pca0, err := pca9685.New(i2cs, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pca0.SetChannel(0, 0, 130)
+	servo0 := pca0.ServoNew(0, nil)
+	
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -121,6 +134,13 @@ func main() {
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
 							event =event+fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d \n", headingAngle,x,y,z)
 							fmt.Println(event)
+                        	if headingAngle > 1 && headingAngle < 10 {
+							for i := 0; i < 130; i++ {
+                    		servo0.Angle(i)
+	                    	time.Sleep(10 * time.Millisecond)
+                         	}
+	                        servo0.Fraction(0.5)
+						}
 							agent.Notifier <- []byte(event)
 						}
 					case line[0:3] == "CH1":
