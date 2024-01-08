@@ -20,6 +20,8 @@ https://people.utm.my/shaharil/run-programs-on-your-raspberry-pi-at-startup/
 
 https://forums.raspberrypi.com//viewtopic.php?f=91&t=65607
 
+https://www.circuitbasics.com/how-to-set-up-buttons-and-switches-on-the-raspberry-pi/
+
 
 9. Click your way to "etc/xdg/lxsession/LXDE/autostart". Open the autostart file.
 
