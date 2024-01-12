@@ -22,6 +22,10 @@ https://forums.raspberrypi.com//viewtopic.php?f=91&t=65607
 
 https://www.circuitbasics.com/how-to-set-up-buttons-and-switches-on-the-raspberry-pi/
 
+https://github.com/stianeikeland/go-rpio
+
+http://gobot.io/documentation/platforms/raspi
+
 
 9. Click your way to "etc/xdg/lxsession/LXDE/autostart". Open the autostart file.
 
