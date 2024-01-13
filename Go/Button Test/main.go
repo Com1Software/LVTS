@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stianeikeland/go-rpio"
+	"github.com/Com1Software/go-rpio"
 )
 
 func main() {
@@ -15,16 +15,14 @@ func main() {
 	}
 	defer rpio.Close()
 
-	ledpin := rpio.Pin(4)
-	pushpin := rpio.Pin(17)
+	button := rpio.Pin(2)
+	button.Input()
 
-	ledpin.Output()
-	pushpin.Input()
-
-	ledpin.Low()
 	for {
-		ledpin.Toggle()
-		time.Sleep(200 * time.Millisecond)
+		if button.Read() == rpio.Low {
+			fmt.Println("You pushed me")
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
 }
-
