@@ -28,6 +28,8 @@ http://gobot.io/documentation/platforms/raspi
 
 https://gokrazy.org/development/gpio/
 
+https://projects.raspberrypi.org/en/projects/physical-computing/5
+
 
 9. Click your way to "etc/xdg/lxsession/LXDE/autostart". Open the autostart file.
 
