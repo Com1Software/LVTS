@@ -4,6 +4,8 @@ Land Vehicle Test System
 
 sudo i2cdetect -y 1
 
+https://www.ardanlabs.com/blog/2020/07/extending-python-with-go.html
+
 https://github.com/d2r2/go-i2c
 
 https://github.com/googolgl/go-i2c
