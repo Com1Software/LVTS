@@ -4,6 +4,8 @@ Land Vehicle Test System
 
 sudo i2cdetect -y 1
 
+https://www.acmesystems.it/gpiod
+
 https://gobot.io/documentation/platforms/raspi/
 
 https://gobot.io/documentation/drivers/button/
