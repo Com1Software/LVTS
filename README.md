@@ -6,6 +6,8 @@ sudo i2cdetect -y 1
 
 https://www.acmesystems.it/gpiod
 
+https://www.instructables.com/Raspberry-PI-Multiple-I2c-Devices/
+
 https://gobot.io/documentation/platforms/raspi/
 
 https://gobot.io/documentation/drivers/button/
