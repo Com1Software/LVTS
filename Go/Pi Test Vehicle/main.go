@@ -1,35 +1,36 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
-	"math"
 
-	"go.bug.st/serial"
 	"github.com/googolgl/go-i2c"
 	"github.com/googolgl/go-pca9685"
+	"go.bug.st/serial"
 )
 
-
-
 const (
-    RegisterA    = 0
-    RegisterB    = 0x01
-    RegisterMode = 0x02
-    XAxisH       = 0x03
-    ZAxisH       = 0x05
-    YAxisH       = 0x07
-    Declination  = -0.00669
-    pi           = 3.14159265359
+	RegisterA    = 0
+	RegisterB    = 0x01
+	RegisterMode = 0x02
+	XAxisH       = 0x03
+	ZAxisH       = 0x05
+	YAxisH       = 0x07
+	Declination  = -0.00669
+	pi           = 3.14159265359
 )
 
 var bus *i2c.Options
+var cmdlines []string
 
 // -------------------------------------------------------------------------
 func main() {
@@ -40,13 +41,29 @@ func main() {
 	//         1 = high speed mode test
 	tctl := 1
 	tc := 0
+	throttle := 0
+	steering := 0
+	drivefile := "drive.ctl"
 	fmt.Println("Pi Test Vehicle")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
 	fmt.Printf("Outbound IP  : %s Port : %s\n", xip, port)
+	if _, err := os.Stat(drivefile); err == nil {
+		fmt.Println("Drive File Present")
+		lines, err := readLines(drivefile)
+		cmdlines = lines
+		if err != nil {
+			fmt.Printf("Drive File Load Error : ( %s )\n", err)
+		} else {
+			fmt.Printf("Drive File Present Loaded %d Lines)\n", len(cmdlines))
+		}
+	} else {
+		fmt.Println("drive.ctl Drive File Not Present")
+	}
+
 	if runtime.GOOS == "windows" {
 		xip = "http://localhost"
 	}
-	
+
 	i2cs, err := i2c.New(pca9685.Address, "/dev/i2c-1")
 	if err != nil {
 		log.Fatal(err)
@@ -57,7 +74,7 @@ func main() {
 	}
 	pca0.SetChannel(0, 0, 130)
 	servo0 := pca0.ServoNew(0, nil)
-	
+
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -80,14 +97,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-
 		bus, _ = i2c.New(0x1e, "/dev/i2c-1")
-        defer bus.Close()
-        MagnetometerInit()
-        fmt.Println("Reading Heading Angle")
+		defer bus.Close()
+		MagnetometerInit()
+		fmt.Println("Reading Heading Angle")
 		go func() {
 			for {
-				              
+
 				switch {
 				case tctl == 0:
 					time.Sleep(time.Second * 1)
@@ -118,29 +134,33 @@ func main() {
 					switch {
 					case line[0:3] == "$GP":
 						x := readRawData(XAxisH)
-							z := readRawData(ZAxisH)
+						z := readRawData(ZAxisH)
 						y := readRawData(YAxisH)
 						heading := math.Atan2(float64(y), float64(x)) + Declination
 						if heading > 2*pi {
-						  heading -= 2 * pi
+							heading -= 2 * pi
 						}
 						if heading < 0 {
-						   heading += 2 * pi
+							heading += 2 * pi
 						}
 						headingAngle := int(heading * 180 / pi)
 						ok = false
 						id, latitude, longitude, ns, ew, gpsspeed, degree := getGPSPosition(line)
 						if len(id) > 0 {
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
-							event =event+fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d \n", headingAngle,x,y,z)
+							event = event + fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d ", headingAngle, x, y, z)
 							fmt.Println(event)
-                        	if headingAngle > 1 && headingAngle < 10 {
-							for i := 0; i < 130; i++ {
-                    		servo0.Angle(i)
-	                    	time.Sleep(10 * time.Millisecond)
-                         	}
-	                        servo0.Fraction(0.5)
-						}
+							drivectl := fmt.Sprintf(" Steering=%d  Throttle=%d Command Lines=%d", steering, throttle, len(cmdlines))
+							fmt.Println(drivectl)
+
+							if headingAngle > 1 && headingAngle < 10 {
+								for i := 0; i < 130; i++ {
+									servo0.Angle(i)
+									time.Sleep(10 * time.Millisecond)
+								}
+								servo0.Fraction(0.5)
+							}
+
 							agent.Notifier <- []byte(event)
 						}
 					case line[0:3] == "CH1":
@@ -417,19 +437,33 @@ func getSenPosition(sentence string) (string, string, string, string, string, st
 	return dis1, pos1, min1, max1, dis2, pos2, min2, max2
 }
 
-
 func MagnetometerInit() {
-    bus.WriteRegU8(RegisterA, 0x70)
-    bus.WriteRegU8(RegisterB, 0xa0)
-    bus.WriteRegU8(RegisterMode, 0)
+	bus.WriteRegU8(RegisterA, 0x70)
+	bus.WriteRegU8(RegisterB, 0xa0)
+	bus.WriteRegU8(RegisterMode, 0)
 }
 
 func readRawData(addr byte) int {
-    high, _ := bus.ReadRegU8(addr)
-    low, _ := bus.ReadRegU8(addr + 1)
-    value := int(int16(high)<<8 | int16(low))
-    if value > 32768 {
-        value -= 65536
-    }
-    return value
+	high, _ := bus.ReadRegU8(addr)
+	low, _ := bus.ReadRegU8(addr + 1)
+	value := int(int16(high)<<8 | int16(low))
+	if value > 32768 {
+		value -= 65536
+	}
+	return value
+}
+
+func readLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
