@@ -30,19 +30,19 @@ const (
 )
 
 var bus *i2c.Options
-var cmdlines []string
 
 // -------------------------------------------------------------------------
 func main() {
 	agent := SSE()
+	cmdctl := []CommandCtl{}
+	cmdctla := CommandCtl{}
 	xip := fmt.Sprintf("%s", GetOutboundIP())
 	port := "8080"
 	//--- tctl 0 = normal mode test
 	//         1 = high speed mode test
 	tctl := 1
 	tc := 0
-	throttle := 0
-	steering := 0
+	psp := 0
 	drivefile := "drive.ctl"
 	fmt.Println("Pi Test Vehicle")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
@@ -50,11 +50,16 @@ func main() {
 	if _, err := os.Stat(drivefile); err == nil {
 		fmt.Println("Drive File Present")
 		lines, err := readLines(drivefile)
-		cmdlines = lines
+		cmdctla.cmdlines = lines
+		cmdctl = append(cmdctl, cmdctla)
+		cmdctl[0].cmdpos = 0
+		cmdctl[0].cmdstatus = "ready"
+		cmdctl[0].throttle = 0
+		cmdctl[0].steering = 0
 		if err != nil {
 			fmt.Printf("Drive File Load Error : ( %s )\n", err)
 		} else {
-			fmt.Printf("Drive File Present Loaded %d Lines)\n", len(cmdlines))
+			fmt.Printf("Drive File Present Loaded %d Lines)\n", len(cmdctl[0].cmdlines))
 		}
 	} else {
 		fmt.Println("drive.ctl Drive File Not Present")
@@ -150,17 +155,29 @@ func main() {
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
 							event = event + fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d ", headingAngle, x, y, z)
 							fmt.Println(event)
-							drivectl := fmt.Sprintf(" Steering=%d  Throttle=%d Command Lines=%d", steering, throttle, len(cmdlines))
+							cmdctl[0].longitude = longitude
+							cmdctl[0].latitude = latitude
+							cmdctl[0].heading = headingAngle
+							cmdctl = ProcessControl(cmdctl)
+							drivectl := fmt.Sprintf(" CMD=%s CMDPos=%d CMDStatus=%s Steering=%d  Throttle=%d Command Lines=%d", cmdctl[0].cmd, cmdctl[0].cmdpos, cmdctl[0].cmdstatus, cmdctl[0].steering, cmdctl[0].throttle, len(cmdctl[0].cmdlines))
 							fmt.Println(drivectl)
+							if psp != cmdctl[0].steering {
+								if psp > cmdctl[0].steering {
+									for i := psp; i < cmdctl[0].steering; i++ {
+										servo0.Angle(i)
+										time.Sleep(10 * time.Millisecond)
+									}
+									psp = cmdctl[0].steering
+								} else {
+									for i := cmdctl[0].steering; i < psp; i-- {
+										servo0.Angle(i)
+										time.Sleep(10 * time.Millisecond)
+									}
+									psp = cmdctl[0].steering
 
-							if headingAngle > 1 && headingAngle < 10 {
-								for i := 0; i < 130; i++ {
-									servo0.Angle(i)
-									time.Sleep(10 * time.Millisecond)
 								}
-								servo0.Fraction(0.5)
+								servo0.Angle(cmdctl[0].steering)
 							}
-
 							agent.Notifier <- []byte(event)
 						}
 					case line[0:3] == "CH1":
@@ -246,6 +263,19 @@ func main() {
 	}
 }
 
+type CommandCtl struct {
+	cmdlines       []string
+	cmd            string
+	cmdpos         int
+	cmdstatus      string
+	steering       int
+	throttle       int
+	heading        int
+	latitude       string
+	longitude      string
+	priorlatitude  string
+	priorlongitude string
+}
 type Agent struct {
 	Notifier    chan []byte
 	newuser     chan chan []byte
@@ -466,4 +496,48 @@ func readLines(path string) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 	return lines, scanner.Err()
+}
+
+func ProcessControl(cmdctl []CommandCtl) []CommandCtl {
+	if len(cmdctl[0].cmdlines) > 0 {
+		if cmdctl[0].cmdpos == 0 && cmdctl[0].cmdstatus == "ready" {
+			cmdctl[0].cmd = cmdctl[0].cmdlines[cmdctl[0].cmdpos]
+			cmdctl[0].cmdstatus = "loaded"
+
+		}
+		data := strings.Split(cmdctl[0].cmd, " ")
+		switch {
+		case data[0] == "align" && len(data) == 2:
+			switch {
+			case data[1] == "N":
+				if cmdctl[0].heading == 0 {
+					cmdctl[0].throttle = 0
+					cmdctl[0].steering = 0
+					cmdctl[0].cmdstatus = "align complete"
+					cmdctl[0].cmdpos++
+					cmdctl[0].cmd = cmdctl[0].cmdlines[cmdctl[0].cmdpos]
+					cmdctl[0].cmdstatus = "loading next command"
+
+				} else {
+					cmdctl[0].cmdstatus = "running align"
+					if cmdctl[0].heading > 180 {
+						cmdctl[0].throttle = 10
+						cmdctl[0].steering = 20
+					} else {
+						cmdctl[0].throttle = 10
+						cmdctl[0].steering = 110
+					}
+				}
+			case data[1] == "S":
+
+			case data[1] == "E":
+
+			case data[1] == "W":
+			}
+
+		case data[0] == "drive" && len(data) == 2:
+
+		}
+	}
+	return cmdctl
 }
