@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"math"
 	"net"
 	"net/http"
 	"os"
@@ -102,9 +101,9 @@ func main() {
 			log.Fatal(err)
 		}
 
-		bus, _ = i2c.New(0x1e, "/dev/i2c-1")
+		bus, _ = i2c.New(0x1c, "/dev/i2c-1")
 		defer bus.Close()
-		MagnetometerInit()
+		//	MagnetometerInit()
 		fmt.Println("Reading Heading Angle")
 		go func() {
 			for {
@@ -138,22 +137,13 @@ func main() {
 				if len(line) > 2 {
 					switch {
 					case line[0:3] == "$GP":
-						x := readRawData(XAxisH)
-						z := readRawData(ZAxisH)
-						y := readRawData(YAxisH)
-						heading := math.Atan2(float64(y), float64(x)) + Declination
-						if heading > 2*pi {
-							heading -= 2 * pi
-						}
-						if heading < 0 {
-							heading += 2 * pi
-						}
-						headingAngle := int(heading * 180 / pi)
+
+						headingAngle := 1
 						ok = false
 						id, latitude, longitude, ns, ew, gpsspeed, degree := getGPSPosition(line)
 						if len(id) > 0 {
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
-							event = event + fmt.Sprintf("Heading Angle = %d - x=%d y=%d z=%d ", headingAngle, x, y, z)
+							event = event + fmt.Sprintf("Heading Angle = %d ", headingAngle)
 							fmt.Println(event)
 							cmdctl[0].longitude = longitude
 							cmdctl[0].latitude = latitude
