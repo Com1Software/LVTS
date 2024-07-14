@@ -4,6 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"os/exec"
 	"runtime"
 	"strconv"
 
@@ -12,11 +15,16 @@ import (
 
 var xh int64 = 0
 var heading int64 = 180
+var serport string
 
 func main() {
+	browserctl := false
 	fmt.Println("Test Multiport Serial Controller")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
-
+	agent := SSE()
+	xip := fmt.Sprintf("%s", GetOutboundIP())
+	port := "8080"
+	//-------------------------------------------
 	ports, err := serial.GetPortsList()
 	if err != nil {
 		log.Fatal(err)
@@ -26,6 +34,7 @@ func main() {
 	}
 	for _, port := range ports {
 		fmt.Printf("Found port: %v\n", port)
+		serport = port
 	}
 	mode := &serial.Mode{
 		BaudRate: 115200,
@@ -33,68 +42,65 @@ func main() {
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
-	mctl := 0
 
-	headingctl := false
-	po := false
+	s, err := serial.Open(serport, mode)
+	if err != nil {
+		fmt.Println(err)
+
+	}
+	//-----------------------------------
 	pos := 0
-	for x := 0; x < len(ports); x++ {
-		openport := ports[x]
-		if runtime.GOOS == "linux" {
-			openport = "/dev/ttyUSB0"
-		}
-		port, err := serial.Open(openport, mode)
-		if err != nil {
-			fmt.Println(err)
-			po = false
-		} else {
-			po = true
-		}
-		if po {
+	mctl := 0
+	headingctl := false
+	go func() {
+		for {
 			buff := make([]byte, 1)
-			for {
-				n, err := port.Read(buff)
+			n, err := s.Read(buff)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if n == 0 {
+				fmt.Println("Cloed Serial Port")
+				s.Close()
+
+			}
+			src := []byte(string(buff))
+			encodedStr := hex.EncodeToString(src)
+			if encodedStr == "55" {
+				mctl = 1
+				pos = 0
+			}
+			if encodedStr == "53" && mctl == 1 {
+				mctl = 2
+			}
+			if mctl == 2 {
+				pos++
+				decimal, err := strconv.ParseInt(encodedStr, 16, 32)
 				if err != nil {
-					log.Fatal(err)
+					fmt.Println(err)
 				}
-				if n == 0 {
-					port.Close()
-					break
-				}
-				src := []byte(string(buff))
-				encodedStr := hex.EncodeToString(src)
-				if encodedStr == "55" {
-					mctl = 1
-					pos = 0
-				}
-				if encodedStr == "53" && mctl == 1 {
-					fmt.Println("")
-					mctl = 2
-				}
-
-				if mctl == 2 {
-					pos++
-
-					decimal, err := strconv.ParseInt(encodedStr, 16, 32)
-					if err != nil {
-						fmt.Println(err)
+				if pos == 7 {
+					if headingctl {
+						heading = GetHeading(decimal)
+					} else {
+						heading = GetHeading(decimal)
 					}
-
-					if pos == 7 {
-						fmt.Printf(" zL= %d", decimal)
-						if headingctl {
-
-							heading = GetHeading(decimal)
-						} else {
-							heading = GetHeading(decimal)
-						}
-
-						fmt.Printf(" Heading= %d", heading)
-
-					}
+					fmt.Printf(" Heading= %d\n", heading)
 				}
 			}
+			event := fmt.Sprintf("Heading=%d\n ", heading)
+			agent.Notifier <- []byte(event)
 		}
+	}()
+
+	if browserctl {
+		Openbrowser(xip + ":" + port)
+	}
+	fmt.Printf("Listening at  : %s Port : %s\n", xip, port)
+	if runtime.GOOS == "windows" {
+		http.ListenAndServe(":"+port, agent)
+	} else {
+		http.ListenAndServe(xip+":"+port, agent)
 	}
 
 }
@@ -617,4 +623,99 @@ func GetHeading(p int64) int64 {
 
 	}
 	return xh
+}
+
+type Agent struct {
+	Notifier    chan []byte
+	newuser     chan chan []byte
+	closinguser chan chan []byte
+	user        map[chan []byte]bool
+}
+
+func SSE() (agent *Agent) {
+	agent = &Agent{
+		Notifier:    make(chan []byte, 1),
+		newuser:     make(chan chan []byte),
+		closinguser: make(chan chan []byte),
+		user:        make(map[chan []byte]bool),
+	}
+	go agent.listen()
+	return
+}
+
+func (agent *Agent) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	flusher, ok := rw.(http.Flusher)
+	if !ok {
+		http.Error(rw, "Error ", http.StatusInternalServerError)
+		return
+	}
+	rw.Header().Set("Content-Type", "text/event-stream")
+	rw.Header().Set("Cache-Control", "no-cache")
+	rw.Header().Set("Connection", "keep-alive")
+	rw.Header().Set("Access-Control-Allow-Origin", "*")
+	mChan := make(chan []byte)
+	agent.newuser <- mChan
+	defer func() {
+		agent.closinguser <- mChan
+	}()
+	notify := req.Context().Done()
+	go func() {
+		<-notify
+		agent.closinguser <- mChan
+	}()
+	for {
+		fmt.Fprintf(rw, "%s", <-mChan)
+		flusher.Flush()
+	}
+
+}
+
+func (agent *Agent) listen() {
+	for {
+		select {
+		case s := <-agent.newuser:
+			agent.user[s] = true
+		case s := <-agent.closinguser:
+			delete(agent.user, s)
+		case event := <-agent.Notifier:
+			for userMChan, _ := range agent.user {
+				userMChan <- event
+			}
+		}
+	}
+
+}
+
+func GetOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
+}
+
+// Openbrowser : Opens default web browser to specified url
+func Openbrowser(url string) error {
+	var cmd string
+	var args []string
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start msedge"}
+
+	case "linux":
+		cmd = "chromium-browser"
+		args = []string{""}
+
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+	args = append(args, url)
+	return exec.Command(cmd, args...).Start()
 }
