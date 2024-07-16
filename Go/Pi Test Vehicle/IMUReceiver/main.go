@@ -14,7 +14,7 @@ import (
 
 func main() {
 	url := "http://com1software.com"
-	url = "http://192.168.1.118:8080"
+	url = "http://192.168.1.116:8080"
 	tc := 0
 	tctl := 0
 	loop := false
