@@ -85,7 +85,7 @@ func main() {
 					} else {
 						heading = GetHeading(decimal)
 					}
-					fmt.Printf(" Heading= %d\n", heading)
+					fmt.Printf(" Using IP: %s Heading= %d\n", xip, heading)
 				}
 			}
 			event := fmt.Sprintf("Heading=%d\n ", heading)
