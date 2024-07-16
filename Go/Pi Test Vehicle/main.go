@@ -191,14 +191,15 @@ func main() {
 						if len(id) > 0 {
 
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
-							event = event + fmt.Sprintf("Heading Angle = %d ", headingAngle)
-							fmt.Println(event)
+							event = event + fmt.Sprintf("Heading Angle = %d \n", headingAngle)
+							fmt.Printf(event)
 							cmdctl[0].longitude = longitude
 							cmdctl[0].latitude = latitude
 							cmdctl[0].heading = headingAngle
 							cmdctl = ProcessControl(cmdctl)
-							drivectl := fmt.Sprintf(" CMD=%s CMDPos=%d CMDStatus=%s Steering=%d  Throttle=%d Command Lines=%d", cmdctl[0].cmd, cmdctl[0].cmdpos, cmdctl[0].cmdstatus, cmdctl[0].steering, cmdctl[0].throttle, len(cmdctl[0].cmdlines))
-							fmt.Println(drivectl)
+							drivectl := fmt.Sprintf(" CMD=%s CMDPos=%d CMDStatus=%s Steering=%d  Throttle=%d Command Lines=%d\n", cmdctl[0].cmd, cmdctl[0].cmdpos, cmdctl[0].cmdstatus, cmdctl[0].steering, cmdctl[0].throttle, len(cmdctl[0].cmdlines))
+							event = event + drivectl
+							fmt.Printf(drivectl)
 							if psp != cmdctl[0].steering {
 								if psp > cmdctl[0].steering {
 									for i := psp; i < cmdctl[0].steering; i++ {
