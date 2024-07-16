@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -39,6 +40,7 @@ func main() {
 	port := "8080"
 	//--- tctl 0 = normal mode test
 	//         1 = high speed mode test
+	headingAngle := 1
 	tctl := 1
 	tc := 0
 	psp := 0
@@ -62,6 +64,30 @@ func main() {
 		}
 	} else {
 		fmt.Println("drive.ctl Drive File Not Present")
+	}
+	exefile := "IMUReceiver/test"
+	cmd := exec.Command(exefile)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	fmt.Println(cmd)
+	//imufile := "IMUReceiver/rec.dat"
+	imufile := "rec.dat"
+	if _, err := os.Stat(drivefile); err == nil {
+		lines, err := readLines(imufile)
+		data := strings.Split(strings.Join(lines, " "), "=")
+		if len(data) > 1 {
+			if err != nil {
+				fmt.Printf("IMU File Load Error : ( %s )\n", err)
+			}
+			i, err := strconv.Atoi(data[1])
+			if err != nil {
+				// ... handle error
+				panic(err)
+			}
+			headingAngle = i
+			fmt.Printf("IMU File Present Heading set to %d\n", i)
+		}
 	}
 
 	if runtime.GOOS == "windows" {
@@ -95,7 +121,9 @@ func main() {
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
 	}
+
 	for x := 0; x < len(ports); x++ {
+
 		port, err := serial.Open(ports[x], mode)
 		if err != nil {
 			log.Fatal(err)
@@ -107,7 +135,6 @@ func main() {
 		fmt.Println("Reading Heading Angle")
 		go func() {
 			for {
-
 				switch {
 				case tctl == 0:
 					time.Sleep(time.Second * 1)
@@ -115,6 +142,27 @@ func main() {
 					time.Sleep(time.Second * -1)
 					tc++
 				}
+
+				cmd := exec.Command(exefile)
+				if err := cmd.Run(); err != nil {
+					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+				}
+				if _, err := os.Stat(drivefile); err == nil {
+					lines, err := readLines(imufile)
+					data := strings.Split(strings.Join(lines, " "), "=")
+					if len(data) > 1 {
+						if err != nil {
+							fmt.Printf("IMU File Load Error : ( %s )\n", err)
+						}
+						i, err := strconv.Atoi(data[1])
+						if err != nil {
+							// ... handle error
+							panic(err)
+						}
+						headingAngle = i
+					}
+				}
+
 				line := ""
 				ok := false
 				buff := make([]byte, 1)
@@ -138,10 +186,10 @@ func main() {
 					switch {
 					case line[0:3] == "$GP":
 
-						headingAngle := 1
 						ok = false
 						id, latitude, longitude, ns, ew, gpsspeed, degree := getGPSPosition(line)
 						if len(id) > 0 {
+
 							event := fmt.Sprintf("%s  latitude=%s  %s   longitude=%s %s knots=%s degrees=%s ", id, latitude, ns, longitude, ew, gpsspeed, degree)
 							event = event + fmt.Sprintf("Heading Angle = %d ", headingAngle)
 							fmt.Println(event)
