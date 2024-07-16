@@ -14,7 +14,7 @@ import (
 
 func main() {
 	url := "http://com1software.com"
-	url = "http://192.168.1.105:8080"
+	url = "http://192.168.1.118:8080"
 	tc := 0
 	tctl := 0
 	switch {
@@ -24,12 +24,23 @@ func main() {
 			log.Fatal(err)
 		}
 		reader := bufio.NewReader(resp.Body)
+		x := 0
 		for {
 			line, erra := reader.ReadBytes('\n')
 			if erra != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("%s", string(line))
+			x++
+			if x > 10 {
+
+				err := os.WriteFile("rec.dat", line, 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
+				x = 0
+			}
+
 		}
 	case tctl == 1:
 
@@ -54,11 +65,16 @@ func cancelCtxOnSigterm(ctx context.Context) context.Context {
 func startWork(ctx context.Context, url string) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
-	// resp, err := http.Get(url)
-	// if err != nil {
-	//	log.Fatal(err)
-	// }
-	//reader := bufio.NewReader(resp.Body)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	reader := bufio.NewReader(resp.Body)
+	line, erra := reader.ReadBytes('\n')
+	if erra != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s", string(line))
 
 	for {
 		fmt.Println("xx")
