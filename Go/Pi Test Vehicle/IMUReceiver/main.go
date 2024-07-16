@@ -17,6 +17,7 @@ func main() {
 	url = "http://192.168.1.118:8080"
 	tc := 0
 	tctl := 0
+	loop := false
 	switch {
 	case tctl == 0:
 		resp, err := http.Get(url)
@@ -24,23 +25,34 @@ func main() {
 			log.Fatal(err)
 		}
 		reader := bufio.NewReader(resp.Body)
-		x := 0
-		for {
+		if loop {
+			x := 0
+			for {
+				line, erra := reader.ReadBytes('\n')
+				if erra != nil {
+					log.Fatal(err)
+				}
+				fmt.Printf("%s", string(line))
+				if x > 10 {
+					err = os.WriteFile("rec.dat", line, 0644)
+					if err != nil {
+						log.Fatal(err)
+					}
+					x = 0
+				}
+			}
+
+		} else {
+
 			line, erra := reader.ReadBytes('\n')
 			if erra != nil {
 				log.Fatal(err)
 			}
 			fmt.Printf("%s", string(line))
-			x++
-			if x > 10 {
-
-				err := os.WriteFile("rec.dat", line, 0644)
-				if err != nil {
-					log.Fatal(err)
-				}
-				x = 0
+			err = os.WriteFile("rec.dat", line, 0644)
+			if err != nil {
+				log.Fatal(err)
 			}
-
 		}
 	case tctl == 1:
 
