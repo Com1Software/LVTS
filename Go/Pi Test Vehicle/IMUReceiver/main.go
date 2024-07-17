@@ -15,6 +15,7 @@ import (
 func main() {
 	url := "http://com1software.com"
 	url = "http://192.168.1.113:8080"
+	url = FindHost() 
 	tc := 0
 	tctl := 0
 	loop := false
@@ -108,4 +109,23 @@ func work(ctx context.Context, url string) error {
 	fmt.Println("doing work")
 
 	return nil
+}
+
+func FindHost() string {
+	url := ""
+	max := 130
+	timeout := 1 * time.Second
+	for x := 100; x < max; x++ {
+		fmt.Printf("Checking %s\n", url)
+		url = "192.168.1." + strconv.Itoa(x) + ":8080"
+		_, err := net.DialTimeout("tcp", url, timeout)
+		if err != nil {
+			fmt.Printf(" %s - Host not Found\n ", url)
+		} else {
+			x = max
+			fmt.Printf("Host Found at %s\n", url)
+			url = "http://" + url
+		}
+	}
+	return url
 }
