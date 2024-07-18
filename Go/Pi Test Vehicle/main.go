@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net"
@@ -120,6 +121,52 @@ func main() {
 		Parity:   serial.NoParity,
 		DataBits: 8,
 		StopBits: serial.OneStopBit,
+	}
+	dz := false
+	if dz {
+		for x := 0; x < len(ports); x++ {
+			port, err := serial.Open(ports[x], mode)
+			if err != nil {
+				log.Fatal(err)
+			}
+			line := ""
+			buff := make([]byte, 1)
+			for {
+				n, err := port.Read(buff)
+				if err != nil {
+					log.Fatal(err)
+				}
+				if n == 0 {
+					port.Close()
+					break
+				}
+
+				src := []byte(string(buff))
+				encodedStr := hex.EncodeToString(src)
+				if encodedStr == "55" {
+					imuport = ports[x]
+					port.Close()
+					break
+				}
+
+				line = line + string(buff[:n])
+				if strings.Contains(string(buff[:n]), "\n") {
+					port.Close()
+					break
+				}
+
+			}
+
+			if len(line) > 3 {
+				switch {
+				case line[0:3] == "$GP":
+					gpsport = ports[x]
+				case line[0:3] == "CH1":
+					rcport = ports[x]
+				}
+
+			}
+		}
 	}
 
 	for x := 0; x < len(ports); x++ {
