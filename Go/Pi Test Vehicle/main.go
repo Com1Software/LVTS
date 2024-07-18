@@ -38,9 +38,12 @@ func main() {
 	cmdctla := CommandCtl{}
 	xip := fmt.Sprintf("%s", GetOutboundIP())
 	port := "8080"
+	headingAngle := 1
+	imurec := false
+	exefile := "IMUReceiver/test"
+	imufile := "rec.dat"
 	//--- tctl 0 = normal mode test
 	//         1 = high speed mode test
-	headingAngle := 1
 	tctl := 1
 	tc := 0
 	psp := 0
@@ -65,31 +68,28 @@ func main() {
 	} else {
 		fmt.Println("drive.ctl Drive File Not Present")
 	}
-	exefile := "IMUReceiver/test"
-	cmd := exec.Command(exefile)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-	}
-	fmt.Println(cmd)
-	//imufile := "IMUReceiver/rec.dat"
-	imufile := "rec.dat"
-	if _, err := os.Stat(drivefile); err == nil {
-		lines, err := readLines(imufile)
-		data := strings.Split(strings.Join(lines, " "), "=")
-		if len(data) > 1 {
-			if err != nil {
-				fmt.Printf("IMU File Load Error : ( %s )\n", err)
+	if imurec {
+		cmd := exec.Command(exefile)
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+		}
+		fmt.Println(cmd)
+		if _, err := os.Stat(drivefile); err == nil {
+			lines, err := readLines(imufile)
+			data := strings.Split(strings.Join(lines, " "), "=")
+			if len(data) > 1 {
+				if err != nil {
+					fmt.Printf("IMU File Load Error : ( %s )\n", err)
+				}
+				i, err := strconv.Atoi(data[1])
+				if err != nil {
+					panic(err)
+				}
+				headingAngle = i
+				fmt.Printf("IMU File Present Heading set to %d\n", i)
 			}
-			i, err := strconv.Atoi(data[1])
-			if err != nil {
-				// ... handle error
-				panic(err)
-			}
-			headingAngle = i
-			fmt.Printf("IMU File Present Heading set to %d\n", i)
 		}
 	}
-
 	if runtime.GOOS == "windows" {
 		xip = "http://localhost"
 	}
@@ -142,24 +142,25 @@ func main() {
 					time.Sleep(time.Second * -1)
 					tc++
 				}
-
-				cmd := exec.Command(exefile)
-				if err := cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				if _, err := os.Stat(drivefile); err == nil {
-					lines, err := readLines(imufile)
-					data := strings.Split(strings.Join(lines, " "), "=")
-					if len(data) > 1 {
-						if err != nil {
-							fmt.Printf("IMU File Load Error : ( %s )\n", err)
+				if imurec {
+					cmd := exec.Command(exefile)
+					if err := cmd.Run(); err != nil {
+						fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+					}
+					if _, err := os.Stat(drivefile); err == nil {
+						lines, err := readLines(imufile)
+						data := strings.Split(strings.Join(lines, " "), "=")
+						if len(data) > 1 {
+							if err != nil {
+								fmt.Printf("IMU File Load Error : ( %s )\n", err)
+							}
+							i, err := strconv.Atoi(data[1])
+							if err != nil {
+								// ... handle error
+								panic(err)
+							}
+							headingAngle = i
 						}
-						i, err := strconv.Atoi(data[1])
-						if err != nil {
-							// ... handle error
-							panic(err)
-						}
-						headingAngle = i
 					}
 				}
 
